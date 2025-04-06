@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High Priority Emails - Employee Reports</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown.min.css">
+    <style>
+        .email-item {
+            border-left: 3px solid #dc3545;
+            transition: all 0.2s ease;
+        }
+        .email-item:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+        .email-item.unread {
+            font-weight: bold;
+        }
+        .category-badge {
+            font-size: 0.8em;
+        }
+        .email-date {
+            font-size: 0.8em;
+            color: #6c757d;
+        }
+        .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">High Priority Emails</h1>
+        
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('mailbox') }}" class="btn btn-outline-primary">All Emails</a>
+                    <a href="{{ url_for('high_priority_emails') }}" class="btn btn-danger">High Priority</a>
+                    <a href="{{ url_for('compose_email') }}" class="btn btn-outline-success">Compose Email</a>
+                    <a href="{{ url_for('email_categories') }}" class="btn btn-outline-secondary">Categories</a>
+                </div>
+                <a href="{{ url_for('home') }}" class="btn btn-outline-secondary float-end">Back to Dashboard</a>
+                <button id="generateSummary" class="btn btn-outline-primary float-end me-2">
+                    <i class="fas fa-robot"></i> Generate AI Summary
+                </button>
+            </div>
+        </div>
+        
+        <div id="summaryContainer" class="card mb-4 d-none">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-robot me-2"></i> AI Summary of High Priority Emails
+                </h5>
+            </div>
+            <div class="card-body markdown-body" id="summaryContent">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Generating summary...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <div class="row">
+                            <div class="col-md-3"><strong>Sender</strong></div>
+                            <div class="col-md-5"><strong>Subject</strong></div>
+                            <div class="col-md-2"><strong>Category</strong></div>
+                            <div class="col-md-2"><strong>Date</strong></div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group">
+                            {% if emails %}
+                                {% for email in emails %}
+                                    <a href="{{ url_for('view_email_detail', email_id=email.id) }}" class="list-group-item list-group-item-action email-item {% if not email.is_read %}unread{% endif %}">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                {{ email.sender }}
+                                                <span class="text-danger ms-2"><i class="fas fa-exclamation-circle"></i></span>
+                                            </div>
+                                            <div class="col-md-5">{{ email.subject }}</div>
+                                            <div class="col-md-2">
+                                                {% if email.category_rel %}
+                                                    <span class="badge bg-info text-dark category-badge">{{ email.category_rel.name }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary category-badge">Uncategorized</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-2 email-date">{{ email.date_received.strftime('%b %d, %Y') }}</div>
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                            {% else %}
+                                <div class="list-group-item text-center py-4">
+                                    No high priority emails found.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        document.getElementById('generateSummary').addEventListener('click', function() {
+            const summaryContainer = document.getElementById('summaryContainer');
+            const summaryContent = document.getElementById('summaryContent');
+            
+            // Show the container with loading indicator
+            summaryContainer.classList.remove('d-none');
+            
+            // Call the API to generate the summary
+            fetch('{{ url_for("email_summary") }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.summary) {
+                        // Convert markdown to HTML and insert into the container
+                        summaryContent.innerHTML = marked.parse(data.summary);
+                    } else {
+                        summaryContent.innerHTML = '<div class="alert alert-warning">No summary could be generated.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    summaryContent.innerHTML = '<div class="alert alert-danger">Error generating summary.</div>';
+                });
+        });
+    </script>
+</body>
+</html> 

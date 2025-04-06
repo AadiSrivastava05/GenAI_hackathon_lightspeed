@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reply to Email - Employee Reports</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .email-header {
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .email-meta {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .email-content {
+            white-space: pre-line;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 3px solid #0d6efd;
+            margin-bottom: 20px;
+        }
+        .suggested-reply {
+            border: 1px solid #28a745;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #f0fff4;
+            margin-bottom: 20px;
+        }
+        .form-check-input:checked ~ .form-check-label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Reply to Email</h1>
+        
+        <div class="mb-3">
+            <a href="{{ url_for('view_email_detail', email_id=email.id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Email
+            </a>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Original Email</h5>
+            </div>
+            <div class="card-body">
+                <div class="email-header">
+                    <h4>{{ email.subject }}</h4>
+                    <div class="email-meta">
+                        <div><strong>From:</strong> {{ email.sender }}</div>
+                        <div><strong>Date:</strong> {{ email.date_received.strftime('%B %d, %Y at %H:%M') }}</div>
+                    </div>
+                </div>
+                <div class="email-content">
+                    {{ email.content }}
+                </div>
+            </div>
+        </div>
+        
+        {% if suggested_reply %}
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-robot me-2"></i> AI Suggested Reply
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="suggested-reply">
+                        {{ suggested_reply }}
+                    </div>
+                    <button id="useAISuggestion" class="btn btn-success">
+                        <i class="fas fa-check-circle"></i> Use This Suggestion
+                    </button>
+                    <button id="generateNewSuggestion" class="btn btn-outline-secondary">
+                        <i class="fas fa-sync"></i> Generate New Suggestion
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Your Reply</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('reply_to_email', email_id=email.id) }}">
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Message</label>
+                        <textarea class="form-control" id="content" name="content" rows="10" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="use_ai" name="use_ai" checked>
+                        <label class="form-check-label" for="use_ai">
+                            Process with AI (categorize and summarize email)
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Send Reply
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Use AI suggestion
+        document.getElementById('useAISuggestion').addEventListener('click', function() {
+            document.getElementById('content').value = `{{ suggested_reply | safe }}`;
+        });
+        
+        // Generate new suggestion
+        document.getElementById('generateNewSuggestion').addEventListener('click', function() {
+            fetch('{{ url_for("suggest_reply", email_id=email.id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const suggestedReplyDiv = document.querySelector('.suggested-reply');
+                        suggestedReplyDiv.innerHTML = data.response;
+                    } else {
+                        alert('Error generating new suggestion: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error generating new suggestion. Please try again.');
+                });
+        });
+    </script>
+</body>
+</html> 

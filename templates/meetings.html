@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meetings - Employee Reports</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .card {
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .meeting-card {
+      transition: all 0.2s ease;
+      border-left: 4px solid #4285F4;
+      margin-bottom: 1rem;
+    }
+    .meeting-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .meeting-date {
+      color: #70757a;
+      font-size: 0.9rem;
+    }
+    .badge-attendee {
+      margin-right: 0.25rem;
+      margin-bottom: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1>Your Meetings</h1>
+      <div>
+        <a href="{{ url_for('employee_dashboard' if current_user.role == 'employee' else 'manager_dashboard') }}" class="btn btn-outline-secondary me-2">
+          <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        <a href="{{ url_for('meeting_scheduler_page') }}" class="btn btn-primary">
+          <i class="fas fa-calendar-plus"></i> Schedule New Meeting
+        </a>
+      </div>
+    </div>
+    
+    <div class="card mb-4">
+      <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="fas fa-filter me-2"></i> Upcoming Meetings</h5>
+      </div>
+      <div class="card-body">
+        {% set has_upcoming = false %}
+        {% for meeting in meetings %}
+          {% if meeting.date_time > now %}
+            {% set has_upcoming = true %}
+            <div class="card meeting-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <h5 class="card-title">{{ meeting.title }}</h5>
+                    <p class="meeting-date mb-2">
+                      <i class="fas fa-clock me-2"></i> {{ meeting.date_time.strftime('%A, %B %d, %Y at %H:%M') }} ({{ meeting.duration }} minutes)
+                    </p>
+                    <div class="mb-2">
+                      {% for attendee in meeting.attendees[:5] %}
+                        <span class="badge bg-primary badge-attendee">{{ attendee.username }}</span>
+                      {% endfor %}
+                      {% if meeting.attendees|length > 5 %}
+                        <span class="badge bg-secondary badge-attendee">+{{ meeting.attendees|length - 5 }} more</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div>
+                    <a href="{{ url_for('view_meeting', meeting_id=meeting.id) }}" class="btn btn-sm btn-outline-primary me-1">
+                      <i class="fas fa-info-circle"></i> Details
+                    </a>
+                    {% if meeting.meet_link %}
+                      <a href="{{ meeting.meet_link }}" target="_blank" class="btn btn-sm btn-success">
+                        <i class="fas fa-video"></i> Join
+                      </a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+        
+        {% if not has_upcoming %}
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> You have no upcoming meetings scheduled.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="fas fa-history me-2"></i> Past Meetings</h5>
+      </div>
+      <div class="card-body">
+        {% set has_past = false %}
+        {% for meeting in meetings %}
+          {% if meeting.date_time <= now %}
+            {% set has_past = true %}
+            <div class="card meeting-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <h5 class="card-title">{{ meeting.title }}</h5>
+                    <p class="meeting-date mb-2">
+                      <i class="fas fa-clock me-2"></i> {{ meeting.date_time.strftime('%A, %B %d, %Y at %H:%M') }} ({{ meeting.duration }} minutes)
+                    </p>
+                    <div class="mb-2">
+                      {% for attendee in meeting.attendees[:5] %}
+                        <span class="badge bg-primary badge-attendee">{{ attendee.username }}</span>
+                      {% endfor %}
+                      {% if meeting.attendees|length > 5 %}
+                        <span class="badge bg-secondary badge-attendee">+{{ meeting.attendees|length - 5 }} more</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div>
+                    <a href="{{ url_for('view_meeting', meeting_id=meeting.id) }}" class="btn btn-sm btn-outline-secondary">
+                      <i class="fas fa-info-circle"></i> Details
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+        
+        {% if not has_past %}
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> You have no past meetings.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

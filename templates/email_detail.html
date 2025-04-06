@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Detail - Employee Reports</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown.min.css">
+    <style>
+        .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .email-header {
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .email-meta {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .email-content {
+            white-space: pre-line;
+        }
+        .category-badge {
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="mb-3">
+            <a href="{{ url_for('mailbox') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Mailbox
+            </a>
+            {% if prev_email_id %}
+                <a href="{{ url_for('view_email_detail', email_id=prev_email_id) }}" class="btn btn-outline-primary ms-2">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+            {% endif %}
+            {% if next_email_id %}
+                <a href="{{ url_for('view_email_detail', email_id=next_email_id) }}" class="btn btn-outline-primary ms-2">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+            {% endif %}
+            
+            <a href="{{ url_for('reply_to_email', email_id=email.id) }}" class="btn btn-success float-end">
+                <i class="fas fa-reply"></i> Reply with AI Suggestions
+            </a>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="email-header">
+                    <h1 class="card-title">{{ email.subject }}</h1>
+                    <div class="email-meta">
+                        <div>
+                            <strong>From:</strong> {{ email.sender }}
+                            {% if email.is_urgent %}
+                                <span class="badge bg-danger ms-2">Urgent</span>
+                            {% endif %}
+                            {% if email.category_rel %}
+                                <span class="badge bg-info text-dark ms-2 category-badge">{{ email.category_rel.name }}</span>
+                            {% endif %}
+                        </div>
+                        <div><strong>Date:</strong> {{ email.date_received.strftime('%B %d, %Y at %H:%M') }}</div>
+                    </div>
+                </div>
+                
+                <div class="email-content mb-4">
+                    {{ email.content }}
+                </div>
+                
+                {% if email.summary %}
+                    <div class="card mt-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-robot me-2"></i> AI Summary
+                            </h5>
+                        </div>
+                        <div class="card-body markdown-body">
+                            {{ email.summary | safe }}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <button class="btn btn-primary" id="markAsRead">
+                        {% if email.is_read %}
+                            <i class="fas fa-envelope-open"></i> Mark as Unread
+                        {% else %}
+                            <i class="fas fa-envelope"></i> Mark as Read
+                        {% endif %}
+                    </button>
+                    <button class="btn btn-danger" id="markAsUrgent">
+                        {% if email.is_urgent %}
+                            <i class="fas fa-exclamation-circle"></i> Remove Urgent Flag
+                        {% else %}
+                            <i class="fas fa-exclamation-circle"></i> Mark as Urgent
+                        {% endif %}
+                    </button>
+                    <a href="{{ url_for('reply_to_email', email_id=email.id) }}" class="btn btn-success">
+                        <i class="fas fa-reply"></i> Reply
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('markAsRead').addEventListener('click', function() {
+            fetch('{{ url_for("toggle_read_status", email_id=email.id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+        });
+        
+        document.getElementById('markAsUrgent').addEventListener('click', function() {
+            fetch('{{ url_for("toggle_urgent_status", email_id=email.id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

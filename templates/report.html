@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Report - {{ employee.username }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background-color: #6d28d9;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    
+    .btn:hover {
+      background-color: #5b21b6;
+    }
+    
+    .btn-secondary {
+      background-color: #64748b;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #475569;
+    }
+    
+    .card {
+      background-color: white;
+      border-radius: 16px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      width: 100%;
+      box-shadow: 0 10px 15px -3px rgba(109, 40, 217, 0.15);
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeIn 0.6s ease forwards;
+      border-top: 4px solid #6d28d9;
+    }
+    
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .summary h2, .charts h2 {
+      margin-top: 0;
+      color: #6d28d9;
+      font-size: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #ede9fe;
+    }
+    
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 1.5rem;
+    }
+    
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
+      background-color: #f5f3ff;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: inset 0 2px 4px rgba(109, 40, 217, 0.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="container">
+      <h1>Employee Report</h1>
+      <p class="subtitle">Performance Analysis for {{ employee.username }}</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="input-area">
+      <div class="dashboard-header">
+        <h2>Report for {{ employee.username }}</h2>
+        <a href="{{ url_for('employee_updates', employee_id=employee.id) }}" class="btn btn-secondary">Back to Updates</a>
+      </div>
+      
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="alert">
+            {% for message in messages %}
+              <p>{{ message }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      
+      {% if updates %}
+        <div class="card summary" id="summaryOutput"></div>
+        <div class="card charts" id="chartOutput"></div>
+      {% else %}
+        <p>No updates available for this employee. Reports cannot be generated without data.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    let chartInstances = [];
+    
+    async function generateReport() {
+      const response = await fetch('/generate_report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          updates: {{ updates|tojson }} 
+        })
+      });
+
+      const result = await response.json();
+
+      const summaryDiv = document.getElementById('summaryOutput');
+      const chartDiv = document.getElementById('chartOutput');
+      summaryDiv.innerHTML = '';
+      chartDiv.innerHTML = '';
+
+      if (result.error) {
+        summaryDiv.innerHTML = `<strong>Error:</strong> ${result.error}`;
+        return;
+      }
+
+      // Summary
+      summaryDiv.innerHTML = `<h2>Summary</h2><p>${result.summary}</p>`;
+
+      // Charts
+      if (result.charts && result.charts.length > 0) {
+        chartDiv.innerHTML = `<h2>Visual Breakdown</h2><div class="chart-grid" id="chartGrid"></div>`;
+        const chartGrid = document.getElementById('chartGrid');
+        
+        // Clear old charts
+        chartInstances.forEach(c => c.destroy());
+        chartInstances = [];
+
+        result.charts.forEach((chartData, index) => {
+          const chartContainer = document.createElement('div');
+          chartContainer.className = 'chart-container';
+          
+          const canvas = document.createElement('canvas');
+          canvas.id = `chart-${index}`;
+          chartContainer.appendChild(canvas);
+          chartGrid.appendChild(chartContainer);
+
+          const ctx = canvas.getContext('2d');
+          const chartInstance = new Chart(ctx, {
+            type: chartData.type,
+            data: {
+              labels: chartData.labels,
+              datasets: [{
+                label: chartData.title,
+                data: chartData.data,
+                backgroundColor: chartData.type === 'pie' ? [
+                  '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe', '#ede9fe',
+                  '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95', '#6b21a8'
+                ] : 'rgba(139, 92, 246, 0.7)',
+                borderColor: '#5b21b6',
+                borderWidth: 1,
+                fill: chartData.type === 'line' ? 'origin' : true,
+                tension: chartData.type === 'line' ? 0.3 : undefined,
+                pointRadius: chartData.type === 'line' ? 5 : undefined,
+                pointBackgroundColor: '#6d28d9',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: chartData.type !== 'bar',
+                  position: 'top',
+                  labels: {
+                    font: {
+                      family: "'Segoe UI', 'Roboto', sans-serif",
+                      size: 12
+                    },
+                    color: '#5b21b6'
+                  }
+                },
+                title: {
+                  display: true,
+                  text: chartData.title,
+                  font: {
+                    family: "'Segoe UI', 'Roboto', sans-serif",
+                    size: 16,
+                    weight: 'bold'
+                  },
+                  color: '#6d28d9',
+                  padding: {
+                    top: 10,
+                    bottom: 15
+                  }
+                }
+              },
+              scales: chartData.type !== 'pie' ? {
+                x: {
+                  grid: {
+                    color: 'rgba(139, 92, 246, 0.1)'
+                  },
+                  ticks: {
+                    font: {
+                      family: "'Segoe UI', 'Roboto', sans-serif"
+                    },
+                    color: '#6b7280'
+                  }
+                },
+                y: {
+                  grid: {
+                    color: 'rgba(139, 92, 246, 0.1)'
+                  },
+                  ticks: {
+                    font: {
+                      family: "'Segoe UI', 'Roboto', sans-serif"
+                    },
+                    color: '#6b7280'
+                  }
+                }
+              } : {}
+            }
+          });
+          
+          chartInstances.push(chartInstance);
+        });
+      }
+    }
+
+    // Generate the report when the page loads
+    document.addEventListener('DOMContentLoaded', generateReport);
+  </script>
+</body>
+</html> 

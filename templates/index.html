@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Report System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .features {
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .feature-card {
+      background-color: white;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .feature-card h3 {
+      color: #6d28d9;
+      margin-top: 0;
+    }
+    
+    .cta-buttons {
+      margin-top: 2rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background-color: #6d28d9;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    
+    .btn:hover {
+      background-color: #5b21b6;
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      border: 2px solid #6d28d9;
+      color: #6d28d9;
+    }
+    
+    .btn-outline:hover {
+      background-color: #f5f3ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="container">
+      <h1>Employee Report System</h1>
+      <p class="subtitle">Track performance, share updates, generate insights</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="input-area">
+      <h2>Welcome to the Employee Report System</h2>
+      <p>
+        Our system helps employees track their work and managers generate insightful reports.
+        Sign in to access your dashboard or register for a new account.
+      </p>
+      
+      <div class="features">
+        <div class="feature-card">
+          <h3>For Employees</h3>
+          <p>Submit regular updates about your work, including completed tasks, meetings, and achievements.</p>
+        </div>
+        
+        <div class="feature-card">
+          <h3>For Managers</h3>
+          <p>View employee updates and generate visual reports with insights to track progress and performance.</p>
+        </div>
+        
+        <div class="feature-card">
+          <h3>Data Visualization</h3>
+          <p>Turn employee updates into meaningful charts and graphs that highlight key metrics and trends.</p>
+        </div>
+      </div>
+      
+      <div class="cta-buttons">
+        <a href="{{ url_for('login') }}" class="btn">Login</a>
+        <a href="{{ url_for('register') }}" class="btn btn-outline">Register</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
