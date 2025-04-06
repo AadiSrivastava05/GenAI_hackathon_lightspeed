@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meeting Details - Employee Reports</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .card {
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .meeting-header {
+      background-color: #4285F4;
+      color: white;
+      border-radius: 10px 10px 0 0;
+      padding: 1.5rem;
+    }
+    .meeting-time {
+      font-size: 1.2rem;
+      margin-top: 0.5rem;
+    }
+    .meeting-details {
+      padding: 1.5rem;
+    }
+    .attendee-badge {
+      font-size: 0.9rem;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem 0.75rem;
+    }
+    .meet-link {
+      display: block;
+      padding: 1rem;
+      background-color: #e8f0fe;
+      border-radius: 4px;
+      color: #4285F4;
+      font-weight: 500;
+      text-align: center;
+      text-decoration: none;
+      margin: 1.5rem 0;
+    }
+    .meet-link:hover {
+      background-color: #d2e3fc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1>Meeting Details</h1>
+      <div>
+        <a href="{{ url_for('meeting_scheduler_page') }}" class="btn btn-outline-secondary">
+          <i class="fas fa-arrow-left"></i> Back to Meetings
+        </a>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="meeting-header">
+        <h2>{{ meeting.title }}</h2>
+        <div class="meeting-time">
+          <i class="fas fa-clock me-2"></i> {{ meeting.date_time.strftime('%A, %B %d, %Y at %H:%M') }} ({{ meeting.duration }} minutes)
+        </div>
+      </div>
+      
+      <div class="meeting-details">
+        {% if meeting.meet_link %}
+          <a href="{{ meeting.meet_link }}" target="_blank" class="meet-link">
+            <i class="fas fa-video me-2"></i> Join Google Meet
+          </a>
+        {% endif %}
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-4">
+              <h5><i class="fas fa-user-circle me-2"></i> Organizer</h5>
+              <p>{{ meeting.creator.username }} ({{ meeting.creator.email }})</p>
+            </div>
+            
+            <div class="mb-4">
+              <h5><i class="fas fa-users me-2"></i> Attendees</h5>
+              <div>
+                {% for attendee in meeting.attendees %}
+                  <span class="badge bg-primary attendee-badge">{{ attendee.username }}</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            {% if meeting.notes %}
+              <div class="mb-4">
+                <h5><i class="fas fa-clipboard me-2"></i> Notes</h5>
+                <p>{{ meeting.notes }}</p>
+              </div>
+            {% endif %}
+            
+            <div class="mb-4">
+              <h5><i class="fas fa-calendar-check me-2"></i> Date and Time</h5>
+              <p><strong>Date:</strong> {{ meeting.date_time.strftime('%A, %B %d, %Y') }}</p>
+              <p><strong>Time:</strong> {{ meeting.date_time.strftime('%H:%M') }}</p>
+              <p><strong>Duration:</strong> {{ meeting.duration }} minutes</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="d-flex justify-content-end mt-3">
+          <a href="{{ url_for('meeting_scheduler_page') }}" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-arrow-left"></i> Back to All Meetings
+          </a>
+          {% if meeting.meet_link %}
+            <a href="{{ meeting.meet_link }}" target="_blank" class="btn btn-primary">
+              <i class="fas fa-video"></i> Join Meeting Now
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

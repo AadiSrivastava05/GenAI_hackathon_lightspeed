@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}Employee Dashboard - Employee Report System{% endblock %}
+
+{% block header_title %}Employee Dashboard{% endblock %}
+{% block header_subtitle %}View your performance and manage your tasks{% endblock %}
+
+{% block additional_styles %}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  height: 100%;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-card {
+  padding: 1.75rem;
+  text-align: center;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-card.primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+}
+
+.dashboard-card.danger {
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+}
+
+.dashboard-card.success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.dashboard-card::after {
+  content: '';
+  position: absolute;
+  width: 210px;
+  height: 210px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  bottom: -130px;
+  right: -80px;
+  z-index: 1;
+}
+
+.dashboard-card::before {
+  content: '';
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  top: -80px;
+  left: -30px;
+  z-index: 1;
+}
+
+.card-content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-count {
+  font-size: 3rem;
+  font-weight: 700;
+  margin: 0.75rem 0;
+  line-height: 1;
+}
+
+.card-icon {
+  font-size: 2.25rem;
+  margin-bottom: 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.dashboard-card h3 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0 0 1.25rem;
+  opacity: 0.9;
+}
+
+.card-btn {
+  background-color: white;
+  color: var(--primary);
+  border-radius: 8px;
+  padding: 0.625rem 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.card-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.danger .card-btn {
+  color: #e11d48;
+}
+
+.success .card-btn {
+  color: #10b981;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.action-btn {
+  background-color: var(--primary-lightest);
+  color: var(--primary);
+  border-radius: 8px;
+  padding: 1rem;
+  font-weight: 500;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--primary-lighter);
+}
+
+.action-btn:hover {
+  background-color: var(--primary-lighter);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn i {
+  font-size: 1.25rem;
+  background: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.update-card {
+  border-left: 4px solid var(--primary);
+  margin-bottom: 1.25rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+  background: white;
+}
+
+.update-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.card-date {
+  font-size: 0.875rem;
+  color: var(--gray-light);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--gray-lighter);
+}
+
+.section-title {
+  font-size: 1.25rem;
+  color: var(--gray-dark);
+  font-weight: 600;
+  margin: 0;
+}
+
+.welcome-text {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--gray-dark);
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+}
+{% endblock %}
+
+{% block content %}
+<div class="header-actions">
+  <h2 class="welcome-text">Welcome, {{ current_user.username }}</h2>
+  <a href="{{ url_for('logout') }}" class="btn btn-outline logout-btn">
+    <i class="fas fa-sign-out-alt"></i> Logout
+  </a>
+</div>
+
+<div class="dashboard-grid">
+  <div class="stat-card">
+    <div class="dashboard-card primary">
+      <div class="card-content">
+        <div class="card-icon">
+          <i class="fas fa-envelope"></i>
+        </div>
+        <div class="card-count">{{ unread_emails }}</div>
+        <h3>Unread Emails</h3>
+        <a href="{{ url_for('mailbox') }}" class="card-btn">
+          <i class="fas fa-envelope-open"></i> Open Mailbox
+        </a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="stat-card">
+    <div class="dashboard-card danger">
+      <div class="card-content">
+        <div class="card-icon">
+          <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <div class="card-count">{{ urgent_emails }}</div>
+        <h3>Urgent Emails</h3>
+        <a href="{{ url_for('high_priority_emails') }}" class="card-btn">
+          <i class="fas fa-exclamation-triangle"></i> View Urgent
+        </a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="stat-card">
+    <div class="dashboard-card success">
+      <div class="card-content">
+        <div class="card-icon">
+          <i class="fas fa-edit"></i>
+        </div>
+        <div class="card-count">{{ updates|length }}</div>
+        <h3>Work Updates</h3>
+        <a href="{{ url_for('submit_update') }}" class="card-btn">
+          <i class="fas fa-plus-circle"></i> New Update
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="section-header">
+      <h3 class="section-title">Quick Actions</h3>
+    </div>
+    <div class="quick-actions">
+      <a href="{{ url_for('compose_email') }}" class="action-btn">
+        <i class="fas fa-paper-plane"></i> Compose Email
+      </a>
+      <a href="{{ url_for('email_categories') }}" class="action-btn">
+        <i class="fas fa-folder"></i> Email Categories
+      </a>
+      <a href="{{ url_for('submit_update') }}" class="action-btn">
+        <i class="fas fa-plus-circle"></i> Submit Update
+      </a>
+      <a href="{{ url_for('mailbox') }}" class="action-btn">
+        <i class="fas fa-inbox"></i> All Emails
+      </a>
+      <a href="{{ url_for('meeting_scheduler_page') }}" class="action-btn">
+        <i class="fas fa-calendar-alt"></i> Meeting Scheduler
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="section-header">
+      <h3 class="section-title">Recent Work Updates</h3>
+      <a href="{{ url_for('submit_update') }}" class="btn">
+        <i class="fas fa-plus-circle"></i> New Update
+      </a>
+    </div>
+    
+    {% if updates %}
+      {% for update in updates %}
+        <div class="update-card">
+          <div class="card-body">
+            <div class="card-date">
+              <i class="fas fa-calendar-alt"></i> {{ update.date_posted.strftime('%B %d, %Y at %H:%M') }}
+            </div>
+            <p class="card-text">{{ update.content }}</p>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="alert info">
+        <i class="fas fa-info-circle"></i> You haven't submitted any work updates yet.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+{% endblock %} 

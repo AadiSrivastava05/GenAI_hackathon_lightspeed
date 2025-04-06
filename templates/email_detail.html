@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Email Detail - Employee Report System{% endblock %}
+
+{% block header_title %}Email Details{% endblock %}
+{% block header_subtitle %}View and manage your email{% endblock %}
+
+{% block additional_styles %}
+.markdown-body {
+  box-sizing: border-box;
+  min-width: 200px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+
+/* Markdown specific styling */
+.markdown-body h1 {
+  font-size: 1.8rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--gray-lighter);
+  padding-bottom: 0.5rem;
+  color: var(--gray-dark);
+}
+
+.markdown-body h2 {
+  font-size: 1.5rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+  color: var(--gray-dark);
+}
+
+.markdown-body h3 {
+  font-size: 1.25rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--gray-dark);
+}
+
+.markdown-body strong {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.markdown-body ul, .markdown-body ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.markdown-body p {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.markdown-body blockquote {
+  border-left: 4px solid var(--primary-lighter);
+  padding-left: 1rem;
+  margin-left: 0;
+  color: var(--gray);
+  font-style: italic;
+}
+
+.email-header {
+  border-bottom: 1px solid var(--gray-lighter);
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.email-meta {
+  color: var(--gray-light);
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.email-content {
+  white-space: pre-line;
+  line-height: 1.6;
+  padding: 1.25rem;
+  background-color: var(--primary-lightest);
+  border-radius: 8px;
+  border-left: 4px solid var(--primary);
+}
+
+.category-badge {
+  font-size: 0.8rem;
+  background-color: var(--primary-light);
+  color: var(--white);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+}
+
+.urgent-badge {
+  background-color: var(--danger);
+  color: var(--white);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.navigation-buttons {
+  display: flex;
+  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.reply-button {
+  margin-left: auto;
+}
+
+.email-card {
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--primary-lighter);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.summary-header {
+  background-color: var(--primary-lightest);
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--primary-lighter);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.summary-header h5 {
+  margin: 0;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.summary-body {
+  padding: 1.25rem;
+  background-color: white;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .navigation-buttons {
+    flex-wrap: wrap;
+  }
+  
+  .reply-button {
+    margin-left: 0;
+    margin-top: 0.5rem;
+    width: 100%;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+}
+{% endblock %}
+
+{% block content %}
+<div class="navigation-buttons">
+  <a href="{{ url_for('mailbox') }}" class="btn btn-outline">
+    <i class="fas fa-arrow-left"></i> Back to Mailbox
+  </a>
+  {% if prev_email_id %}
+    <a href="{{ url_for('view_email_detail', email_id=prev_email_id) }}" class="btn btn-outline">
+      <i class="fas fa-chevron-left"></i> Previous
+    </a>
+  {% endif %}
+  {% if next_email_id %}
+    <a href="{{ url_for('view_email_detail', email_id=next_email_id) }}" class="btn btn-outline">
+      Next <i class="fas fa-chevron-right"></i>
+    </a>
+  {% endif %}
+  
+  <a href="{{ url_for('reply_to_email', email_id=email.id) }}" class="btn reply-button">
+    <i class="fas fa-reply"></i> Reply with AI Suggestions
+  </a>
+</div>
+
+<div class="card email-card">
+  <div class="card-body">
+    <div class="email-header">
+      <h2 class="card-title">{{ email.subject }}</h2>
+      <div class="email-meta">
+        <div>
+          <strong>From:</strong> {{ email.sender }}
+          {% if email.is_urgent %}
+            <span class="urgent-badge">
+              <i class="fas fa-exclamation-circle"></i> Urgent
+            </span>
+          {% endif %}
+          {% if email.category_rel %}
+            <span class="category-badge">
+              <i class="fas fa-tag"></i> {{ email.category_rel.name }}
+            </span>
+          {% endif %}
+        </div>
+        <div><strong>Date:</strong> {{ email.date_received.strftime('%B %d, %Y at %H:%M') }}</div>
+      </div>
+    </div>
+    
+    {% if email.summary %}
+      <div class="summary-card">
+        <div class="summary-header">
+          <i class="fas fa-robot"></i>
+          <h5>AI Summary</h5>
+        </div>
+        <div class="summary-body markdown-body" id="summaryContent">
+          {{ email.summary | safe }}
+        </div>
+      </div>
+    {% endif %}
+    
+    <div class="email-content mb-4">
+      {{ email.content }}
+    </div>
+    
+    <div class="action-buttons">
+      <button class="btn" id="markAsRead">
+        {% if email.is_read %}
+          <i class="fas fa-envelope-open"></i> Mark as Unread
+        {% else %}
+          <i class="fas fa-envelope"></i> Mark as Read
+        {% endif %}
+      </button>
+      <button class="btn {% if email.is_urgent %}btn-danger{% else %}btn-outline{% endif %}" id="markAsUrgent">
+        <i class="fas fa-exclamation-circle"></i>
+        {% if email.is_urgent %}
+          Remove Urgent Flag
+        {% else %}
+          Mark as Urgent
+        {% endif %}
+      </button>
+      <a href="{{ url_for('reply_to_email', email_id=email.id) }}" class="btn">
+        <i class="fas fa-reply"></i> Reply
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Process markdown in summary if it exists
+    const summaryContent = document.getElementById('summaryContent');
+    if (summaryContent && summaryContent.innerHTML.trim()) {
+      // Configure marked.js for proper rendering
+      marked.setOptions({
+        headerIds: true,
+        gfm: true,
+        breaks: true,
+        pedantic: false,
+        smartLists: true,
+        smartypants: true
+      });
+      
+      // Get the raw content, parse markdown, and insert back
+      const rawContent = summaryContent.innerHTML.trim();
+      summaryContent.innerHTML = marked.parse(rawContent);
+    }
+  });
+
+  document.getElementById('markAsRead').addEventListener('click', function() {
+    fetch('{{ url_for("toggle_read_status", email_id=email.id) }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        location.reload();
+      }
+    });
+  });
+  
+  document.getElementById('markAsUrgent').addEventListener('click', function() {
+    fetch('{{ url_for("toggle_urgent_status", email_id=email.id) }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        location.reload();
+      }
+    });
+  });
+</script>
+{% endblock %} 

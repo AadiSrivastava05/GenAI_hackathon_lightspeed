@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Report Generator</title>
+  <style>
+    :root {
+      --primary: #6d28d9;
+      --primary-light: #8b5cf6;
+      --primary-dark: #5b21b6;
+      --secondary: #ede9fe;
+      --bg-purple: #f5f3ff;
+      --bg-purple-light: #faf5ff;
+      --text: #2d3748;
+      --text-light: #f8fafc;
+      --text-gray: #94a3b8;
+      --white: #ffffff;
+      --shadow: rgba(109, 40, 217, 0.15);
+    }
+    
+    body {
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      background-color: var(--bg-purple);
+      background-image: linear-gradient(135deg, var(--bg-purple) 0%, var(--bg-purple-light) 100%);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .header {
+      background-color: var(--primary);
+      color: var(--text-light);
+      padding: 2rem 0;
+      margin-bottom: 2rem;
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    h1 {
+      text-align: center;
+      font-weight: 700;
+      margin: 0;
+      font-size: 2.2rem;
+      letter-spacing: 0.5px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--secondary);
+      font-weight: 400;
+      margin-top: 0.5rem;
+    }
+
+    .input-area {
+      background-color: var(--white);
+      padding: 2rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 15px -3px var(--shadow);
+    }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      padding: 1rem;
+      font-size: 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      resize: vertical;
+      background-color: var(--bg-purple-light);
+      box-shadow: inset 0 2px 4px rgba(109, 40, 217, 0.05);
+      font-family: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      box-shadow: inset 0 2px 4px rgba(109, 40, 217, 0.1);
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: center;
+    }
+
+    button {
+      padding: 0.75rem 2.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      background-color: var(--primary);
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 6px var(--shadow);
+    }
+
+    button:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px var(--shadow);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+
+    .card {
+      background-color: var(--white);
+      border-radius: 16px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      width: 100%;
+      box-shadow: 0 10px 15px -3px var(--shadow);
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeIn 0.6s ease forwards;
+      border-top: 4px solid var(--primary);
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .summary h2, .charts h2 {
+      margin-top: 0;
+      color: var(--primary);
+      font-size: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--secondary);
+    }
+
+    .summary p {
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 1.5rem;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
+      background-color: var(--bg-purple-light);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: inset 0 2px 4px rgba(109, 40, 217, 0.05);
+    }
+
+    .charts {
+      animation-delay: 0.2s;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 1rem;
+        margin: 1rem auto;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+      }
+      
+      .card {
+        padding: 1.25rem;
+      }
+      
+      .chart-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="container">
+      <h1>Employee Weekly Report</h1>
+      <p class="subtitle">Generate insights from your weekly updates</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="input-area">
+      <textarea id="updatesInput" placeholder="Enter work updates here, one per line..."></textarea>
+      
+      <div class="button-container">
+        <button id="generateBtn">Generate Report</button>
+      </div>
+    </div>
+
+    <div class="card summary" id="summaryOutput"></div>
+    <div class="card charts" id="chartOutput"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    let chartInstances = [];
+    
+    document.getElementById('generateBtn').addEventListener('click', async () => {
+      const updatesText = document.getElementById('updatesInput').value.trim();
+
+      if (!updatesText) {
+        alert("Please enter some updates.");
+        return;
+      }
+
+      const updates = updatesText.split('\n').filter(line => line.trim() !== "");
+
+      const response = await fetch('/generate_report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ updates })
+      });
+
+      const result = await response.json();
+
+      const summaryDiv = document.getElementById('summaryOutput');
+      const chartDiv = document.getElementById('chartOutput');
+      summaryDiv.innerHTML = '';
+      chartDiv.innerHTML = '';
+
+      if (result.error) {
+        summaryDiv.innerHTML = `<strong>Error:</strong> ${result.error}`;
+        return;
+      }
+
+      // Summary
+      summaryDiv.innerHTML = `<h2>Summary</h2><p>${result.summary}</p>`;
+
+      // Charts
+      if (result.charts && result.charts.length > 0) {
+        chartDiv.innerHTML = `<h2>Visual Breakdown</h2><div class="chart-grid" id="chartGrid"></div>`;
+        const chartGrid = document.getElementById('chartGrid');
+        
+        // Clear old charts
+        chartInstances.forEach(c => c.destroy());
+        chartInstances = [];
+
+        result.charts.forEach((chartData, index) => {
+          const chartContainer = document.createElement('div');
+          chartContainer.className = 'chart-container';
+          
+          const canvas = document.createElement('canvas');
+          canvas.id = `chart-${index}`;
+          chartContainer.appendChild(canvas);
+          chartGrid.appendChild(chartContainer);
+
+          const ctx = canvas.getContext('2d');
+          const chartInstance = new Chart(ctx, {
+            type: chartData.type,
+            data: {
+              labels: chartData.labels,
+              datasets: [{
+                label: chartData.title,
+                data: chartData.data,
+                backgroundColor: chartData.type === 'pie' ? [
+                  '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe', '#ede9fe',
+                  '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95', '#6b21a8'
+                ] : 'rgba(139, 92, 246, 0.7)',
+                borderColor: '#5b21b6',
+                borderWidth: 1,
+                fill: chartData.type === 'line' ? 'origin' : true,
+                tension: chartData.type === 'line' ? 0.3 : undefined,
+                pointRadius: chartData.type === 'line' ? 5 : undefined,
+                pointBackgroundColor: '#6d28d9',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: chartData.type !== 'bar',
+                  position: 'top',
+                  labels: {
+                    font: {
+                      family: "'Segoe UI', 'Roboto', sans-serif",
+                      size: 12
+                    },
+                    color: '#5b21b6'
+                  }
+                },
+                title: {
+                  display: true,
+                  text: chartData.title,
+                  font: {
+                    family: "'Segoe UI', 'Roboto', sans-serif",
+                    size: 16,
+                    weight: 'bold'
+                  },
+                  color: '#6d28d9',
+                  padding: {
+                    top: 10,
+                    bottom: 15
+                  }
+                }
+              },
+              scales: chartData.type !== 'pie' ? {
+                x: {
+                  grid: {
+                    color: 'rgba(139, 92, 246, 0.1)'
+                  },
+                  ticks: {
+                    font: {
+                      family: "'Segoe UI', 'Roboto', sans-serif"
+                    },
+                    color: '#6b7280'
+                  }
+                },
+                y: {
+                  grid: {
+                    color: 'rgba(139, 92, 246, 0.1)'
+                  },
+                  ticks: {
+                    font: {
+                      family: "'Segoe UI', 'Roboto', sans-serif"
+                    },
+                    color: '#6b7280'
+                  }
+                }
+              } : {}
+            }
+          });
+          
+          chartInstances.push(chartInstance);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

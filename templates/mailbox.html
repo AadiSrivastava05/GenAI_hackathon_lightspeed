@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mailbox - Employee Reports</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .email-list {
+            width: 100%;
+            border-spacing: 0;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        
+        .list-header {
+            display: grid;
+            grid-template-columns: 3fr 5fr 2fr 2fr;
+            background-color: #6d28d9;
+            color: white;
+            padding: 0.75rem 1rem;
+            font-weight: bold;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .list-item {
+            display: grid;
+            grid-template-columns: 3fr 5fr 2fr 2fr;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: inherit;
+            border-bottom: 1px solid #e5e7eb;
+            border-left: 3px solid transparent;
+            transition: background-color 0.2s;
+        }
+        
+        .list-item:hover {
+            background-color: #f5f3ff;
+        }
+        
+        .list-item.unread {
+            border-left: 3px solid #6d28d9;
+            font-weight: bold;
+        }
+        
+        .list-item.urgent {
+            border-left: 3px solid #e11d48;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background-color: #818cf8;
+            color: white;
+        }
+        
+        .email-date {
+            font-size: 0.8em;
+            color: #6b7280;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        
+        .nav-buttons-right {
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>Mailbox</h1>
+            <p class="subtitle">Manage your emails and communications</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="nav-buttons">
+            <a href="{{ url_for('mailbox') }}" class="btn">All Emails</a>
+            <a href="{{ url_for('high_priority_emails') }}" class="btn btn-outline">High Priority</a>
+            <a href="{{ url_for('compose_email') }}" class="btn btn-outline">Compose Email</a>
+            <a href="{{ url_for('email_categories') }}" class="btn btn-outline">Categories</a>
+            
+            <div class="nav-buttons-right">
+                <a href="{{ url_for('home') }}" class="btn btn-outline">Back to Dashboard</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="list-header">
+                <div>Sender</div>
+                <div>Subject</div>
+                <div>Category</div>
+                <div>Date</div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                {% if emails %}
+                    {% for email in emails %}
+                        <a href="{{ url_for('view_email_detail', email_id=email.id) }}" class="list-item {% if not email.is_read %}unread{% endif %} {% if email.is_urgent %}urgent{% endif %}">
+                            <div>
+                                {{ email.sender }}
+                                {% if email.is_urgent %}
+                                    <span style="color: #e11d48; margin-left: 0.5rem;"><i class="fas fa-exclamation-circle"></i></span>
+                                {% endif %}
+                            </div>
+                            <div>{{ email.subject }}</div>
+                            <div>
+                                {% if email.category_rel %}
+                                    <span class="category-badge">{{ email.category_rel.name }}</span>
+                                {% else %}
+                                    <span class="category-badge" style="background-color: #9ca3af;">Uncategorized</span>
+                                {% endif %}
+                            </div>
+                            <div class="email-date">{{ email.date_received.strftime('%b %d, %Y') }}</div>
+                        </a>
+                    {% endfor %}
+                {% else %}
+                    <div style="padding: 2rem; text-align: center;">
+                        No emails found.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html> 

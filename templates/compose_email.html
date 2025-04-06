@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compose Email - Employee Reports</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #4b5563;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            background-color: #f5f3ff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+        
+        .form-check {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .form-check-input {
+            margin-right: 0.5rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+        
+        .form-check-input:checked {
+            background-color: #6d28d9;
+            border-color: #6d28d9;
+        }
+        
+        .form-check-input:checked ~ .form-check-label {
+            font-weight: bold;
+            color: #6d28d9;
+        }
+        
+        .form-check-label {
+            cursor: pointer;
+        }
+        
+        .compose-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>Compose New Email</h1>
+            <p class="subtitle">Create and send messages to your team</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="compose-container">
+            <div class="mb-4">
+                <a href="{{ url_for('mailbox') }}" class="btn btn-outline">
+                    <i class="fas fa-arrow-left"></i> Back to Mailbox
+                </a>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('compose_email') }}">
+                        <div class="form-group">
+                            <label for="recipient" class="form-label">To</label>
+                            <select class="form-select" id="recipient" name="recipient" required>
+                                <option value="" selected disabled>Select recipient</option>
+                                {% for user in users %}
+                                    <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="subject" class="form-label">Subject</label>
+                            <input type="text" id="subject" name="subject" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="content" class="form-label">Message</label>
+                            <textarea id="content" name="content" rows="10" required></textarea>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="is_urgent" name="is_urgent">
+                            <label class="form-check-label" for="is_urgent">Mark as Urgent</label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category_id">
+                                <option value="">-- Select Category --</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="use_ai" name="use_ai" checked>
+                            <label class="form-check-label" for="use_ai">
+                                Use AI to categorize and summarize email
+                            </label>
+                        </div>
+                        
+                        <div style="margin-top: 2rem;">
+                            <button type="submit" class="btn">
+                                <i class="fas fa-paper-plane"></i> Send Email
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html> 

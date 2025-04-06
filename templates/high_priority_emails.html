@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High Priority Emails - Employee Reports</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .email-list {
+            width: 100%;
+            border-spacing: 0;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        
+        .email-list th {
+            background-color: #6d28d9;
+            color: white;
+            text-align: left;
+            padding: 0.75rem 1rem;
+        }
+        
+        .email-list td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .email-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-left: 3px solid #e11d48;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .email-item:hover {
+            background-color: #f5f3ff;
+        }
+        
+        .email-item.unread {
+            font-weight: bold;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background-color: #818cf8;
+            color: white;
+        }
+        
+        .email-date {
+            font-size: 0.8em;
+            color: #6b7280;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        
+        .nav-buttons-right {
+            margin-left: auto;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .list-header {
+            display: grid;
+            grid-template-columns: 3fr 5fr 2fr 2fr;
+            background-color: #6d28d9;
+            color: white;
+            padding: 0.75rem 1rem;
+            font-weight: bold;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .list-item {
+            display: grid;
+            grid-template-columns: 3fr 5fr 2fr 2fr;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: inherit;
+            border-bottom: 1px solid #e5e7eb;
+            transition: background-color 0.2s;
+        }
+        
+        .list-item:hover {
+            background-color: #f5f3ff;
+        }
+        
+        .list-item.unread {
+            font-weight: bold;
+        }
+        
+        .loading-spinner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6d28d9;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Markdown styling */
+        .markdown-content h1 {
+            font-size: 1.8rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+        
+        .markdown-content h2 {
+            font-size: 1.5rem;
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .markdown-content h3 {
+            font-size: 1.25rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .markdown-content strong {
+            font-weight: 700;
+            color: #6d28d9;
+        }
+        
+        .markdown-content ul, .markdown-content ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .markdown-content p {
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>High Priority Emails</h1>
+            <p class="subtitle">Manage your urgent communications</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="nav-buttons">
+            <a href="{{ url_for('mailbox') }}" class="btn btn-outline">All Emails</a>
+            <a href="{{ url_for('high_priority_emails') }}" class="btn">High Priority</a>
+            <a href="{{ url_for('compose_email') }}" class="btn btn-outline">Compose Email</a>
+            <a href="{{ url_for('email_categories') }}" class="btn btn-outline">Categories</a>
+            
+            <div class="nav-buttons-right">
+                <button id="generateSummary" class="btn">
+                    <i class="fas fa-robot"></i> Generate AI Summary
+                </button>
+                <a href="{{ url_for('home') }}" class="btn btn-outline">Back to Dashboard</a>
+            </div>
+        </div>
+        
+        <div id="summaryContainer" class="card" style="display: none;">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-robot"></i> AI Summary of High Priority Emails
+                </h3>
+            </div>
+            <div class="card-body markdown-content" id="summaryContent">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p class="mt-2">Generating summary...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="list-header">
+                <div>Sender</div>
+                <div>Subject</div>
+                <div>Category</div>
+                <div>Date</div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                {% if emails %}
+                    {% for email in emails %}
+                        <a href="{{ url_for('view_email_detail', email_id=email.id) }}" class="list-item {% if not email.is_read %}unread{% endif %}">
+                            <div>
+                                {{ email.sender }}
+                                <span style="color: #e11d48; margin-left: 0.5rem;"><i class="fas fa-exclamation-circle"></i></span>
+                            </div>
+                            <div>{{ email.subject }}</div>
+                            <div>
+                                {% if email.category_rel %}
+                                    <span class="category-badge">{{ email.category_rel.name }}</span>
+                                {% else %}
+                                    <span class="category-badge" style="background-color: #9ca3af;">Uncategorized</span>
+                                {% endif %}
+                            </div>
+                            <div class="email-date">{{ email.date_received.strftime('%b %d, %Y') }}</div>
+                        </a>
+                    {% endfor %}
+                {% else %}
+                    <div style="padding: 2rem; text-align: center;">
+                        No high priority emails found.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        document.getElementById('generateSummary').addEventListener('click', function() {
+            const summaryContainer = document.getElementById('summaryContainer');
+            const summaryContent = document.getElementById('summaryContent');
+            
+            // Show the container with loading indicator
+            summaryContainer.style.display = 'block';
+            
+            // Call the API to generate the summary
+            fetch('{{ url_for("email_summary") }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.summary) {
+                        // Configure marked.js options for proper Markdown rendering
+                        marked.setOptions({
+                            headerIds: true,
+                            gfm: true,
+                            breaks: true,
+                            pedantic: false,
+                            smartLists: true,
+                            smartypants: true
+                        });
+                        
+                        // Convert markdown to HTML and insert into the container
+                        summaryContent.innerHTML = marked.parse(data.summary);
+                    } else {
+                        summaryContent.innerHTML = '<div class="alert info">No summary could be generated.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    summaryContent.innerHTML = '<div class="alert">Error generating summary.</div>';
+                });
+        });
+    </script>
+</body>
+</html> 
